@@ -4,7 +4,7 @@
 # Erik Ackermann
 # Charlene Wang
 #
-# Connect 4 Module
+# Connect self.n_to_win Module
 # February 27, 2012
 
 import random
@@ -16,9 +16,11 @@ class Minimax(object):
     board = None
     colors = ["x", "o"]
     
-    def __init__(self, board):
+    def __init__(self, board, game_size, n_to_win):
         # copy the board to self.board
         self.board = [x[:] for x in board]
+        self.game_size = game_size
+        self.n_to_win = n_to_win
             
     def bestMove(self, depth, state, curr_player):
         """ Returns the best move (as a column number) and the associated alpha
@@ -33,7 +35,7 @@ class Minimax(object):
         
         # enumerate all legal moves
         legal_moves = {} # will map legal move states to their alpha values
-        for col in range(7):
+        for col in range(self.game_size['x']):
             # if column i is a legal move...
             if self.isLegalMove(col, state):
                 # make the move in column 'col' for curr_player
@@ -61,7 +63,7 @@ class Minimax(object):
         
         # enumerate all legal moves from this state
         legal_moves = []
-        for i in range(7):
+        for i in range(self.game_size['x']):
             # if column i is a legal move...
             if self.isLegalMove(i, state):
                 # make the move in column i for curr_player
@@ -90,7 +92,7 @@ class Minimax(object):
         """ Boolean function to check if a move (column) is a legal move
         """
         
-        for i in range(6):
+        for i in range(self.game_size['y']):
             if state[i][column] == ' ':
                 # once we find the first empty, we know it's a legal move
                 return True
@@ -99,9 +101,9 @@ class Minimax(object):
         return False
     
     def gameIsOver(self, state):
-        if self.checkForStreak(state, self.colors[0], 4) >= 1:
+        if self.checkForStreak(state, self.colors[0], self.n_to_win) >= 1:
             return True
-        elif self.checkForStreak(state, self.colors[1], 4) >= 1:
+        elif self.checkForStreak(state, self.colors[1], self.n_to_win) >= 1:
             return True
         else:
             return False
@@ -115,15 +117,15 @@ class Minimax(object):
         """
         
         temp = [x[:] for x in state]
-        for i in range(6):
+        for i in range(self.game_size['y']):
             if temp[i][column] == ' ':
                 temp[i][column] = color
                 return temp
 
     def value(self, state, color):
         """ Simple heuristic to evaluate board configurations
-            Heuristic is (num of 4-in-a-rows)*99999 + (num of 3-in-a-rows)*100 + 
-            (num of 2-in-a-rows)*10 - (num of opponent 4-in-a-rows)*99999 - (num of opponent
+            Heuristic is (num of self.n_to_win-in-a-rows)*99999 + (num of 3-in-a-rows)*100 + 
+            (num of 2-in-a-rows)*10 - (num of opponent self.n_to_win-in-a-rows)*99999 - (num of opponent
             3-in-a-rows)*100 - (num of opponent 2-in-a-rows)*10
         """
         if color == self.colors[0]:
@@ -131,10 +133,10 @@ class Minimax(object):
         else:
             o_color = self.colors[0]
         
-        my_fours = self.checkForStreak(state, color, 4)
+        my_fours = self.checkForStreak(state, color, self.n_to_win)
         my_threes = self.checkForStreak(state, color, 3)
         my_twos = self.checkForStreak(state, color, 2)
-        opp_fours = self.checkForStreak(state, o_color, 4)
+        opp_fours = self.checkForStreak(state, o_color, self.n_to_win)
         #opp_threes = self.checkForStreak(state, o_color, 3)
         #opp_twos = self.checkForStreak(state, o_color, 2)
         if opp_fours > 0:
@@ -145,7 +147,7 @@ class Minimax(object):
     def checkForStreak(self, state, color, streak):
         count = 0
         # for each piece in the board...
-        for i in range(6):
+        for i in range(self.game_size['y']):
             for j in range(7):
                 # ...that is of the color we're looking for...
                 if state[i][j].lower() == color.lower():
@@ -162,7 +164,7 @@ class Minimax(object):
             
     def verticalStreak(self, row, col, state, streak):
         consecutiveCount = 0
-        for i in range(row, 6):
+        for i in range(row, self.game_size['y']):
             if state[i][col].lower() == state[row][col].lower():
                 consecutiveCount += 1
             else:
@@ -192,8 +194,8 @@ class Minimax(object):
         # check for diagonals with positive slope
         consecutiveCount = 0
         j = col
-        for i in range(row, 6):
-            if j > 6:
+        for i in range(row, self.game_size['y']):
+            if j > self.game_size['y']:
                 break
             elif state[i][j].lower() == state[row][col].lower():
                 consecutiveCount += 1
@@ -208,7 +210,7 @@ class Minimax(object):
         consecutiveCount = 0
         j = col
         for i in range(row, -1, -1):
-            if j > 6:
+            if j > self.game_size['y']:
                 break
             elif state[i][j].lower() == state[row][col].lower():
                 consecutiveCount += 1

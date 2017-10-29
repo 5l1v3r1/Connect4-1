@@ -12,10 +12,14 @@ import os
 import time
 from minimax import Minimax
 
+game_size = {'x': 8, 'y': None}
+game_size['y'] = game_size['x'] - 1
+n_to_win = 5
+
 class Game(object):
     """ Game object that holds state of Connect 4 board and game values
     """
-    
+   
     board = None
     round = None
     finished = None
@@ -29,62 +33,68 @@ class Game(object):
         self.round = 1
         self.finished = False
         self.winner = None
+
+        self.players[0] = AIPlayer("com1", self.colors[0], 2)
+        self.players[1] = AIPlayer("com2", self.colors[1], 2)
+
+        # self.players[0] = Player("sadegh", self.colors[0])
+        # self.players[1] = Player("asghar", self.colors[1])
         
-        # do cross-platform clear screen
-        os.system( [ 'clear', 'cls' ][ os.name == 'nt' ] )
-        print(u"Welcome to {0}!".format(self.game_name))
-        print("Should Player 1 be a Human or a Computer?")
-        while self.players[0] == None:
-            choice = str(input("Type 'H' or 'C': "))
-            if choice == "Human" or choice.lower() == "h":
-                name = str(input("What is Player 1's name? "))
-                self.players[0] = Player(name, self.colors[0])
-            elif choice == "Computer" or choice.lower() == "c":
-                name = str(input("What is Player 1's name? "))
-                diff = int(input("Enter difficulty for this AI (1 - 4) "))
-                self.players[0] = AIPlayer(name, self.colors[0], diff+1)
-            else:
-                print("Invalid choice, please try again")
-        print("{0} will be {1}".format(self.players[0].name, self.colors[0]))
+        # # do cross-platform clear screen
+        # os.system( [ 'clear', 'cls' ][ os.name == 'nt' ] )
+        # print(u"Welcome to {0}!".format(self.game_name))
+        # print("Should Player 1 be a Human or a Computer?")
+        # while self.players[0] == None:
+        #     choice = str(input("Type 'H' or 'C': "))
+        #     if choice == "Human" or choice.lower() == "h":
+        #         name = str(input("What is Player 1's name? "))
+        #         self.players[0] = Player(name, self.colors[0])
+        #     elif choice == "Computer" or choice.lower() == "c":
+        #         name = str(input("What is Player 1's name? "))
+        #         diff = int(input("Enter difficulty for this AI (1 - 4) "))
+        #         self.players[0] = AIPlayer(name, self.colors[0], diff+1)
+        #     else:
+        #         print("Invalid choice, please try again")
+        # print("{0} will be {1}".format(self.players[0].name, self.colors[0]))
         
-        print("Should Player 2 be a Human or a Computer?")
-        while self.players[1] == None:
-            choice = str(input("Type 'H' or 'C': "))
-            if choice == "Human" or choice.lower() == "h":
-                name = str(input("What is Player 2's name? "))
-                self.players[1] = Player(name, self.colors[1])
-            elif choice == "Computer" or choice.lower() == "c":
-                name = str(input("What is Player 2's name? "))
-                diff = int(input("Enter difficulty for this AI (1 - 4) "))
-                self.players[1] = AIPlayer(name, self.colors[1], diff+1)
-            else:
-                print("Invalid choice, please try again")
-        print("{0} will be {1}".format(self.players[1].name, self.colors[1]))
+        # print("Should Player 2 be a Human or a Computer?")
+        # while self.players[1] == None:
+        #     choice = str(input("Type 'H' or 'C': "))
+        #     if choice == "Human" or choice.lower() == "h":
+        #         name = str(input("What is Player 2's name? "))
+        #         self.players[1] = Player(name, self.colors[1])
+        #     elif choice == "Computer" or choice.lower() == "c":
+        #         name = str(input("What is Player 2's name? "))
+        #         diff = int(input("Enter difficulty for this AI (1 - 4) "))
+        #         self.players[1] = AIPlayer(name, self.colors[1], diff+1)
+        #     else:
+        #         print("Invalid choice, please try again")
+        # print("{0} will be {1}".format(self.players[1].name, self.colors[1]))
         
     # x always goes first (arbitrary choice on my part)
         self.turn = self.players[0]
         
         self.board = []
-        for i in range(6):
+        for i in range(game_size['y']):
             self.board.append([])
-            for j in range(7):
+            for j in range(game_size['x']):
                 self.board[i].append(' ')
     
-    def newGame(self):
-        """ Function to reset the game, but not the names or colors
-        """
-        self.round = 1
-        self.finished = False
-        self.winner = None
+    # def newGame(self):
+    #     """ Function to reset the game, but not the names or colors
+    #     """
+    #     self.round = 1
+    #     self.finished = False
+    #     self.winner = None
         
-        # x always goes first (arbitrary choice on my part)
-        self.turn = self.players[0]
+    #     # x always goes first (arbitrary choice on my part)
+    #     self.turn = self.players[0]
         
-        self.board = []
-        for i in range(6):
-            self.board.append([])
-            for j in range(7):
-                self.board[i].append(' ')
+    #     self.board = []
+    #     for i in range(game_size['y']):
+    #         self.board.append([])
+    #         for j in range(game_size['x']):
+    #             self.board[i].append(' ')
 
     def switchTurn(self):
         if self.turn == self.players[0]:
@@ -98,17 +108,14 @@ class Game(object):
     def nextMove(self):
         player = self.turn
 
-        # there are only 42 legal places for pieces on the board
-        # exactly one piece is added to the board each turn
-        if self.round > 42:
+        if self.round > game_size['x'] * game_size['y']:
             self.finished = True
-            # this would be a stalemate :(
             return
         
         # move is the column that player want's to play
         move = player.move(self.board)
 
-        for i in range(6):
+        for i in range(game_size['y']):
             if self.board[i][move] == ' ':
                 self.board[i][move] = player.color
                 self.switchTurn()
@@ -122,8 +129,8 @@ class Game(object):
     
     def checkForFours(self):
         # for each piece in the board...
-        for i in range(6):
-            for j in range(7):
+        for i in range(game_size['y']):
+            for j in range(game_size['x']):
                 if self.board[i][j] != ' ':
                     # check if a vertical four-in-a-row starts at (i, j)
                     if self.verticalCheck(i, j):
@@ -145,26 +152,26 @@ class Game(object):
         
     def verticalCheck(self, row, col):
         #print("checking vert")
-        fourInARow = False
+        nInARow = False
         consecutiveCount = 0
     
-        for i in range(row, 6):
+        for i in range(row, game_size['y']):
             if self.board[i][col].lower() == self.board[row][col].lower():
                 consecutiveCount += 1
             else:
                 break
     
-        if consecutiveCount >= 4:
-            fourInARow = True
+        if consecutiveCount >= n_to_win:
+            nInARow = True
             if self.players[0].color.lower() == self.board[row][col].lower():
                 self.winner = self.players[0]
             else:
                 self.winner = self.players[1]
     
-        return fourInARow
+        return nInARow
     
     def horizontalCheck(self, row, col):
-        fourInARow = False
+        nInARow = False
         consecutiveCount = 0
         
         for j in range(col, 7):
@@ -173,14 +180,14 @@ class Game(object):
             else:
                 break
 
-        if consecutiveCount >= 4:
-            fourInARow = True
+        if consecutiveCount >= n_to_win:
+            nInARow = True
             if self.players[0].color.lower() == self.board[row][col].lower():
                 self.winner = self.players[0]
             else:
                 self.winner = self.players[1]
 
-        return fourInARow
+        return nInARow
     
     def diagonalCheck(self, row, col):
         fourInARow = False
@@ -190,8 +197,8 @@ class Game(object):
         # check for diagonals with positive slope
         consecutiveCount = 0
         j = col
-        for i in range(row, 6):
-            if j > 6:
+        for i in range(row, game_size['y']):
+            if j > game_size['y']:
                 break
             elif self.board[i][j].lower() == self.board[row][col].lower():
                 consecutiveCount += 1
@@ -199,7 +206,7 @@ class Game(object):
                 break
             j += 1 # increment column when row is incremented
             
-        if consecutiveCount >= 4:
+        if consecutiveCount >= n_to_win:
             count += 1
             slope = 'positive'
             if self.players[0].color.lower() == self.board[row][col].lower():
@@ -211,7 +218,7 @@ class Game(object):
         consecutiveCount = 0
         j = col
         for i in range(row, -1, -1):
-            if j > 6:
+            if j > game_size['y']:
                 break
             elif self.board[i][j].lower() == self.board[row][col].lower():
                 consecutiveCount += 1
@@ -219,7 +226,7 @@ class Game(object):
                 break
             j += 1 # increment column when row is decremented
 
-        if consecutiveCount >= 4:
+        if consecutiveCount >= n_to_win:
             count += 1
             slope = 'negative'
             if self.players[0].color.lower() == self.board[row][col].lower():
@@ -238,8 +245,8 @@ class Game(object):
             Calls highlightFours
         """
     
-        for i in range(6):
-            for j in range(7):
+        for i in range(game_size['y']):
+            for j in range(game_size['x']):
                 if self.board[i][j] != ' ':
                     # check if a vertical four-in-a-row starts at (i, j)
                     if self.verticalCheck(i, j):
@@ -261,20 +268,20 @@ class Game(object):
         """
         
         if direction == 'vertical':
-            for i in range(4):
+            for i in range(n_to_win):
                 self.board[row+i][col] = self.board[row+i][col].upper()
         
         elif direction == 'horizontal':
-            for i in range(4):
+            for i in range(n_to_win):
                 self.board[row][col+i] = self.board[row][col+i].upper()
         
         elif direction == 'diagonal':
             if slope == 'positive' or slope == 'both':
-                for i in range(4):
+                for i in range(n_to_win):
                     self.board[row+i][col+i] = self.board[row+i][col+i].upper()
         
             elif slope == 'negative' or slope == 'both':
-                for i in range(4):
+                for i in range(n_to_win):
                     self.board[row-i][col+i] = self.board[row-i][col+i].upper()
         
         else:
@@ -286,13 +293,20 @@ class Game(object):
         print(u"{0}!".format(self.game_name))
         print("Round: " + str(self.round))
 
-        for i in range(5, -1, -1):
+        for i in range(game_size['y']-1, -1, -1):
             print("\t", end="")
-            for j in range(7):
+            for j in range(game_size['x']):
                 print("| " + str(self.board[i][j]), end=" ")
             print("|")
-        print("\t  _   _   _   _   _   _   _ ")
-        print("\t  1   2   3   4   5   6   7 ")
+
+        print("\t  ", end="")
+        for _ in range(game_size['x']):
+            print("_", end="   ")
+
+        print("\n\t  ", end="")
+        for i in range(game_size['x']):
+            print(i+1, end= (4 - len(str(i+1))) * " ")
+        print("\n")
 
         if self.finished:
             print("Game Over!")
@@ -321,7 +335,7 @@ class Player(object):
                 choice = int(input("Enter a move (by column number): ")) - 1
             except ValueError:
                 choice = None
-            if 0 <= choice <= 6:
+            if 0 <= choice <= game_size['y']:
                 column = choice
             else:
                 print("Invalid choice, try again")
@@ -348,7 +362,7 @@ class AIPlayer(Player):
         #time.sleep(random.randrange(8, 17, 1)/10.0)
         #return random.randint(0, 6)
         
-        m = Minimax(state)
+        m = Minimax(state, game_size, n_to_win)
         best_move, value = m.bestMove(self.difficulty, state, self.color)
         return best_move
 
